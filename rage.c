@@ -8,6 +8,8 @@
  * If you run it, it might crash your device and make it unusable!
  * So you use it at your own risk!
  * fork-bomb를 통해서 분할된 프로세스에 프로세스 생성 제약을 초과할 때 발생하는 권한 상승(setuid=0)설정을 노리는 공격 익스플로잇입니다.
+ * [1] process bomb.
+ * [2] adb reset! (trigger).
  */
 #include <stdio.h>
 #include <sys/types.h>

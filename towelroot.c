@@ -6,6 +6,21 @@ towelroot.c
 	futex는 유저 스페이스의 페이지를 락 잠금하는 기능을 가진 뮤텍스를 의미함.
 	lock하고 wake할 수 있음.
 
+[열거 함수]
+read_pipe() // copy_from_kernel()
+write_pipe() // copy_to_user()
+
+[signal handler] write_kernel() 커널 메모리에 크리덴셜들 갱신하도록 직접 접근해서 쓰는 함수.
+
+wake_actionthread() // make_acton에 의해서 생성된 SIG_KILL 시스템 콜 핸들러 pthread 쓰레드를 많이 생성하는 함수.
+make_socket() // accept_socket() 함수를 대기시키고, 그곳에 접속하는 함수.
+[th] make_action()
+[th] send_magicmsg() // MAGIC, MAGIC_ALT 메시지 전송 함수.
+setup_exploit() // 익스플로잇 메모리 값 설정.
+[th] signal_exploit() // 시그날 익스플로잇 함수.
+accept_socket() // TCP 소켓 하나 대기하고 억셉트 받는 함수.
+init_exploit() // 익스플로잇 실행.
+
 
 */
 
@@ -34,8 +49,9 @@ towelroot.c
 						write_kernel() 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
 						익스플로잇 실행 인자로 전달된 path의 파일 (/bin/sh) 실행.
 				[th3]: send_magicmsg(): 설정된(획득한) MAGIC, MAGIC_ALT 메시지(msg)를 전송.
+				       make_socket(): 5551 TCP 포트로 대기 중이던 th1 쓰레드의 소켓에 접해서 MAGIC, MAGIC_ALT 메시지 전송.
 
-
+					
 */
 
 //#define FUTEX_LOCK_PI            6

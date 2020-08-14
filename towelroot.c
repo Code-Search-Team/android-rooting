@@ -30,6 +30,7 @@ towelroot.c
 				[th1]: accept_socket(): TCP 서버 소켓 하나 대기 시켜서 접속 받고 리턴함.
 				[th2]: search_goodnum(): 익스플로잇 설정 ...
 					wake_actionthread 쓰레드를 많이 켬.
+					make_action(): 시그날 락하는 함수.
 						write_kernel() 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
 						익스플로잇 실행 인자로 전달된 path의 파일 (/bin/sh) 실행.
 				[th3]: send_magicmsg(): 설정된(획득한) MAGIC, MAGIC_ALT 메시지(msg)를 전송.

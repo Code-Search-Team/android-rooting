@@ -1,3 +1,14 @@
+/*
+
+towelroot.c
+
+- futex: https://man7.org/linux/man-pages/man7/futex.7.html
+	futex는 유저 스페이스의 페이지를 락 잠금하는 기능을 가진 뮤텍스를 의미함.
+	lock하고 wake할 수 있음.
+
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>

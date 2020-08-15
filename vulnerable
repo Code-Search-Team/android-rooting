@@ -9,7 +9,7 @@
 ICMP 패킷을 전송할 때, 소켓 제어를 통해서 커널 코드(페이로드)를 주입함으로써 루트를 획득하도록
 prot[] (크리덴셜 갱신)을 해서 루트쉘을 획득하게 해주는 기능을 한다.
 
-3. hotplug_vuln.c
+3. exploid.c
 /proc/sys/kernel/hotplug를 접근하고, 메시지를 전송한다. USB 키가 플러그인되면 루트쉘이 획득되게 된다.
 
 4. levitator.c

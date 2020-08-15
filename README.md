@@ -8,7 +8,7 @@ I'm the linux zeroday exploit guy! (iSec.pl).
 okay. all right.
 
 Purposes:
-- [1] Hacker to reaading research.
+- [1] Hacker to reading research.
 - [2] Researcher to analysis to hacker became.
 - [3] V/R.
 

@@ -7,9 +7,13 @@
  * !!!This is PoC code for educational purposes only!!!
  * If you run it, it might crash your device and make it unusable!
  * So you use it at your own risk!
- * fork-bomb를 통해서 분할된 프로세스에 프로세스 생성 제약을 초과할 때 발생하는 권한 상승(setuid=0)설정을 노리는 공격 익스플로잇입니다.
- * [1] process bomb.
- * [2] adb reset! (trigger).
+ *
+ * 분석 이해:
+ * 취약점 발생 원인이 adb 디몬의 setuid()로 인해 루트가 할당되어 adb 리셋시 루트쉘이 뜨는 문제입니다.
+ * 그 발생 원리가 코드 분석상 주석이 설명이 잘 안되어 있어서 이해하기가 어렵습니다.
+ * 프로세스 포크 봄프를 통해서 setuid()가 0이 되는 때를 찾는 것 같네요. 그게 원리입니다.
+ * 좀 더 자세한 정보 있으신 분은 리포팅 해 주세요!. 첨부하겠습니다.
+ *
  */
 #include <stdio.h>
 #include <sys/types.h>

